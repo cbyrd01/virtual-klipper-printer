@@ -92,6 +92,64 @@ function link_timelapse() {
   fi
 }
 
+######
+# Setup Mainsail based on INCLUDE_MAINSAIL environment variable
+###
+function setup_mainsail() {
+  case "${INCLUDE_MAINSAIL:-none}" in
+    "release")
+      status_msg "Setting up Mainsail (release mode) ..."
+      if [[ -d "${HOME}/mainsail-release" && "$(ls -A "${HOME}/mainsail-release")" ]]; then
+        rm -rf "${HOME}/mainsail" 2>/dev/null || true
+        cp -r "${HOME}/mainsail-release" "${HOME}/mainsail"
+        setup_nginx
+        status_msg "Mainsail (release) setup complete!"
+      else
+        status_msg "Warning: Mainsail release files not found, skipping..."
+      fi
+      ;;
+    "dev")
+      status_msg "Setting up Mainsail (development mode) ..."
+      if [[ -d "/home/printer/mainsail-dev-local" && "$(ls -A "/home/printer/mainsail-dev-local")" ]]; then
+        # Use mounted local development directory
+        rm -rf "${HOME}/mainsail" 2>/dev/null || true
+        # Check if it's a built Mainsail (has dist directory) or source
+        if [[ -d "/home/printer/mainsail-dev-local/dist" && "$(ls -A "/home/printer/mainsail-dev-local/dist")" ]]; then
+          status_msg "Found Mainsail dist directory, using built files..."
+          ln -sf "/home/printer/mainsail-dev-local/dist" "${HOME}/mainsail"
+        else
+          status_msg "Using local Mainsail directory directly..."
+          ln -sf "/home/printer/mainsail-dev-local" "${HOME}/mainsail"
+        fi
+        setup_nginx
+        status_msg "Mainsail (local dev) setup complete!"
+      elif [[ -d "${HOME}/mainsail-dev" && "$(ls -A "${HOME}/mainsail-dev")" ]]; then
+        # Use built Mainsail from container build
+        rm -rf "${HOME}/mainsail" 2>/dev/null || true
+        cp -r "${HOME}/mainsail-dev" "${HOME}/mainsail"
+        setup_nginx
+        status_msg "Mainsail (dev build) setup complete!"
+      else
+        status_msg "Warning: Mainsail development files not found, skipping..."
+      fi
+      ;;
+    "none"|*)
+      status_msg "Mainsail integration disabled"
+      ;;
+  esac
+}
+
+######
+# Setup nginx configuration and enable the service
+###
+function setup_nginx() {
+  status_msg "Configuring nginx for Mainsail ..."
+  cp "${HOME}/config/nginx.conf" "${HOME}/nginx.conf"
+  # Enable nginx in supervisord
+  sudo sed -i 's/autostart=false/autostart=true/' /etc/supervisor/supervisord.conf
+  status_msg "Nginx configured!"
+}
+
 #===================================================#
 #===================================================#
 
@@ -101,6 +159,7 @@ check_folder_perms_and_create
 copy_example_configs
 copy_dummy_images
 link_timelapse
+setup_mainsail
 
 sudo -S rm /bin/systemctl
 sudo -S ln -s /bin/service_control /bin/systemctl

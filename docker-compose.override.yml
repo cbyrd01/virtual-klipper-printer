@@ -14,6 +14,8 @@ services:
       - MAINSAIL_DEV_PATH=${MAINSAIL_DEV_PATH:-}
     volumes:
       - ./printer_data:/home/printer/printer_data:delegated
+      # Only mount if MAINSAIL_DEV_PATH is set
+      - ${MAINSAIL_DEV_PATH:-./empty}:/home/printer/mainsail-dev-local:ro
     tmpfs:
       - /tmp:exec,mode=1777
       - /home/printer/printer_data/comms:exec,uid=1000,gid=1000,mode=0755

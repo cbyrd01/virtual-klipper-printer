@@ -6,14 +6,16 @@ services:
       dockerfile: Dockerfile
       args:
         KLIPPER_REPO: ${KLIPPER_REPO:-https://github.com/Klipper3d/klipper.git}
-        INCLUDE_MAINSAIL: ${INCLUDE_MAINSAIL:-none}
+        INCLUDE_MAINSAIL: dev
         MAINSAIL_VERSION: ${MAINSAIL_VERSION:-latest}
     environment:
-      - INCLUDE_MAINSAIL=${INCLUDE_MAINSAIL:-none}
+      - INCLUDE_MAINSAIL=dev
       - MAINSAIL_VERSION=${MAINSAIL_VERSION:-latest}
       - MAINSAIL_DEV_PATH=${MAINSAIL_DEV_PATH:-}
     volumes:
       - ./printer_data:/home/printer/printer_data:delegated
+      # Mount your local Mainsail development directory here
+      - ${MAINSAIL_DEV_PATH:-./mainsail}:/home/printer/mainsail-dev-local:ro
     tmpfs:
       - /tmp:exec,mode=1777
       - /home/printer/printer_data/comms:exec,uid=1000,gid=1000,mode=0755
