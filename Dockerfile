@@ -44,6 +44,9 @@ RUN git clone -b master https://git.savannah.nongnu.org/git/simulavr.git \
     && cp /usr/src/simulavr.config .config \
     && make \
     && cp out/klipper.elf /build/simulavr.elf \
+    && mkdir -p /build/klipper_out \
+    && cp out/klipper.dict /build/klipper_out/ \
+    && cp out/klipper.elf /build/klipper_out/ \
     && rm -f .config \
     && make clean \
     # Build simulavr
@@ -121,6 +124,7 @@ WORKDIR /home/printer
 # Copy our prebuilt applications from the builder stage
 COPY --from=builder --chown=printer:printer /build/klippy-env ./klippy-env
 COPY --from=builder --chown=printer:printer /build/klipper/ ./klipper/
+COPY --from=builder --chown=printer:printer /build/klipper_out/ ./klipper/out/
 COPY --from=builder --chown=printer:printer /build/moonraker ./moonraker
 COPY --from=builder --chown=printer:printer /build/moonraker-env ./moonraker-env
 COPY --from=builder --chown=printer:printer /build/moonraker-timelapse ./moonraker-timelapse

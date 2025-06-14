@@ -8,6 +8,9 @@ services:
         KLIPPER_REPO: ${KLIPPER_REPO:-https://github.com/Klipper3d/klipper.git}
     volumes:
       - ./printer_data:/home/printer/printer_data:delegated
+    tmpfs:
+      - /tmp:exec,mode=1777
+      - /home/printer/printer_data/comms:exec,uid=1000,gid=1000,mode=0755
     ports:
       - "7125:7125"
       - "8110:8080"
